@@ -30,5 +30,5 @@ CREATE TABLE IF NOT EXISTS comments (
 );
 
 INSERT INTO users (username, password)
-SELECT 'demo', 'demo'
+SELECT 'demo', '$2y$10$u8FE/qvZ9/q.dY5HJvK9YuEDhEQHI0t1VxT4/JkN2lJ8qV1Gxu3VW'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'demo');

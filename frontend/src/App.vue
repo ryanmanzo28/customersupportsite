@@ -9,6 +9,7 @@ import {
   getAuthUser,
   login,
   logout,
+  register,
   updateTicketStatus,
 } from './api';
 
@@ -27,6 +28,14 @@ const loginForm = reactive({
   password: 'demo',
 });
 const loginSaving = ref(false);
+const registerMode = ref(false);
+
+const registerForm = reactive({
+  username: '',
+  password: '',
+  passwordConfirm: '',
+});
+const registerSaving = ref(false);
 
 const form = reactive({
   submitting_user_id: 1,
@@ -144,6 +153,25 @@ async function submitLogin() {
   }
 }
 
+async function submitRegister() {
+  if (registerForm.password !== registerForm.passwordConfirm) {
+    error.value = 'Passwords do not match';
+    return;
+  }
+
+  registerSaving.value = true;
+  error.value = '';
+  try {
+    authUser.value = await register(registerForm.username, registerForm.password);
+    commentForm.commenter_name = authUser.value.username;
+    registerMode.value = false;
+  } catch (e) {
+    error.value = e.message;
+  } finally {
+    registerSaving.value = false;
+  }
+}
+
 async function restoreAuth() {
   if (!authUser.value) {
     return;
@@ -175,21 +203,43 @@ onMounted(async () => {
     <p class="meta">Vue frontend talking to CakePHP backend API.</p>
 
     <section class="panel">
-      <h2>Login</h2>
+      <h2>{{ registerMode ? 'Register' : 'Login' }}</h2>
       <p v-if="authUser" class="meta">Logged in as {{ authUser.username }} (ID {{ authUser.id }})</p>
-      <div v-if="!authUser" class="row">
-        <label>
-          Username
-          <input v-model="loginForm.username" type="text" />
-        </label>
-        <label>
-          Password
-          <input v-model="loginForm.password" type="password" />
-        </label>
+      <div v-if="!authUser">
+        <div v-if="!registerMode" class="row">
+          <label>
+            Username
+            <input v-model="loginForm.username" type="text" />
+          </label>
+          <label>
+            Password
+            <input v-model="loginForm.password" type="password" />
+          </label>
+        </div>
+        <div v-else class="row">
+          <label>
+            Username
+            <input v-model="registerForm.username" type="text" />
+          </label>
+          <label>
+            Password
+            <input v-model="registerForm.password" type="password" />
+          </label>
+          <label>
+            Confirm Password
+            <input v-model="registerForm.passwordConfirm" type="password" />
+          </label>
+        </div>
+        <button v-if="!registerMode" :disabled="loginSaving" @click="submitLogin">
+          {{ loginSaving ? 'Signing in...' : 'Login' }}
+        </button>
+        <button v-else :disabled="registerSaving" @click="submitRegister">
+          {{ registerSaving ? 'Creating...' : 'Create Account' }}
+        </button>
+        <button @click="registerMode = !registerMode">
+          {{ registerMode ? 'Back to Login' : 'Need an account?' }}
+        </button>
       </div>
-      <button v-if="!authUser" :disabled="loginSaving" @click="submitLogin">
-        {{ loginSaving ? 'Signing in...' : 'Login' }}
-      </button>
       <button v-else @click="signOut">Logout</button>
     </section>
 

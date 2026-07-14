@@ -15,6 +15,7 @@ Router::scope('/', function (RouteBuilder $routes): void {
 
     $routes->prefix('Api', function (RouteBuilder $api): void {
         $api->connect('/auth/login', ['controller' => 'Auth', 'action' => 'login', '_method' => 'POST']);
+        $api->connect('/auth/register', ['controller' => 'Auth', 'action' => 'register', '_method' => 'POST']);
         $api->connect('/auth/me', ['controller' => 'Auth', 'action' => 'me', '_method' => 'GET']);
 
         $api->connect('/tickets', ['controller' => 'Tickets', 'action' => 'index', '_method' => 'GET']);

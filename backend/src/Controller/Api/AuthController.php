@@ -29,7 +29,7 @@ class AuthController extends AppController
             ->where(['username' => $username])
             ->first();
 
-        if (!$user || $user->password !== $password) {
+        if (!$user || !password_verify($password, (string)$user->password)) {
             $this->response = $this->response->withStatus(401);
             $this->set([
                 'success' => false,
@@ -70,6 +70,65 @@ class AuthController extends AppController
         $this->set([
             'success' => true,
             'data' => $authUser,
+            '_serialize' => ['success', 'data'],
+        ]);
+    }
+
+    public function register()
+    {
+        $username = (string)($this->request->getData('username') ?? '');
+        $password = (string)($this->request->getData('password') ?? '');
+
+        if ($username === '' || $password === '') {
+            $this->response = $this->response->withStatus(422);
+            $this->set([
+                'success' => false,
+                'message' => 'Username and password are required',
+                '_serialize' => ['success', 'message'],
+            ]);
+            return;
+        }
+
+        $usersTable = $this->fetchTable('Users');
+        $existing = $usersTable->find()->where(['username' => $username])->first();
+
+        if ($existing) {
+            $this->response = $this->response->withStatus(422);
+            $this->set([
+                'success' => false,
+                'message' => 'Username already taken',
+                '_serialize' => ['success', 'message'],
+            ]);
+            return;
+        }
+
+        $user = $usersTable->newEmptyEntity();
+        $user = $usersTable->patchEntity($user, [
+            'username' => $username,
+            'password' => password_hash($password, PASSWORD_DEFAULT),
+        ]);
+
+        if (!$usersTable->save($user)) {
+            $this->response = $this->response->withStatus(422);
+            $this->set([
+                'success' => false,
+                'errors' => $user->getErrors(),
+                '_serialize' => ['success', 'errors'],
+            ]);
+            return;
+        }
+
+        $token = $this->issueAuthToken((int)$user->id, (string)$user->username);
+
+        $this->set([
+            'success' => true,
+            'data' => [
+                'token' => $token,
+                'user' => [
+                    'id' => (int)$user->id,
+                    'username' => (string)$user->username,
+                ],
+            ],
             '_serialize' => ['success', 'data'],
         ]);
     }
