@@ -1,0 +1,79 @@
+:root {
+  color-scheme: light;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f6f8fb;
+  color: #1f2937;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+input,
+select,
+textarea,
+button {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font: inherit;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+button {
+  background: #0f766e;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ticket {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.85rem;
+}
+
+.ticket h3 {
+  margin: 0 0 0.4rem;
+}
+
+.meta {
+  color: #6b7280;
+  font-size: 0.9rem;
+}

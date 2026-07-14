@@ -4,6 +4,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: support_backend
+    command: sh -c "composer install && apache2-foreground"
     ports:
       - "8080:80"
     environment:
@@ -42,6 +43,7 @@ services:
       - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
+      - ./backend/docker/mysql/initdb.d:/docker-entrypoint-initdb.d
 
 volumes:
   db_data:
