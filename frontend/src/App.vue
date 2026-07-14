@@ -1,6 +1,16 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
-import { createComment, createTicket, fetchTicketById, fetchTickets, updateTicketStatus } from './api';
+import {
+  createComment,
+  createTicket,
+  fetchMe,
+  fetchTicketById,
+  fetchTickets,
+  getAuthUser,
+  login,
+  logout,
+  updateTicketStatus,
+} from './api';
 
 const loading = ref(false);
 const saving = ref(false);
@@ -10,6 +20,13 @@ const detailLoading = ref(false);
 const statusSaving = ref(false);
 const commentSaving = ref(false);
 const error = ref('');
+const authUser = ref(getAuthUser());
+
+const loginForm = reactive({
+  username: 'demo',
+  password: 'demo',
+});
+const loginSaving = ref(false);
 
 const form = reactive({
   submitting_user_id: 1,
@@ -37,10 +54,20 @@ async function loadTickets() {
 }
 
 async function submitTicket() {
+  if (!authUser.value) {
+    error.value = 'Please login first';
+    return;
+  }
+
   saving.value = true;
   error.value = '';
   try {
-    await createTicket(form);
+    await createTicket({
+      status: form.status,
+      title: form.title,
+      body: form.body,
+      submitting_user_id: authUser.value.id,
+    });
     form.title = '';
     form.body = '';
     await loadTickets();
@@ -85,6 +112,11 @@ async function submitComment() {
     return;
   }
 
+  if (!authUser.value) {
+    error.value = 'Please login first';
+    return;
+  }
+
   commentSaving.value = true;
   error.value = '';
   try {
@@ -99,7 +131,42 @@ async function submitComment() {
   }
 }
 
-onMounted(loadTickets);
+async function submitLogin() {
+  loginSaving.value = true;
+  error.value = '';
+  try {
+    authUser.value = await login(loginForm.username, loginForm.password);
+    commentForm.commenter_name = authUser.value.username;
+  } catch (e) {
+    error.value = e.message;
+  } finally {
+    loginSaving.value = false;
+  }
+}
+
+async function restoreAuth() {
+  if (!authUser.value) {
+    return;
+  }
+
+  try {
+    authUser.value = await fetchMe();
+    commentForm.commenter_name = authUser.value.username;
+  } catch {
+    logout();
+    authUser.value = null;
+  }
+}
+
+function signOut() {
+  logout();
+  authUser.value = null;
+}
+
+onMounted(async () => {
+  await restoreAuth();
+  await loadTickets();
+});
 </script>
 
 <template>
@@ -108,12 +175,27 @@ onMounted(loadTickets);
     <p class="meta">Vue frontend talking to CakePHP backend API.</p>
 
     <section class="panel">
+      <h2>Login</h2>
+      <p v-if="authUser" class="meta">Logged in as {{ authUser.username }} (ID {{ authUser.id }})</p>
+      <div v-if="!authUser" class="row">
+        <label>
+          Username
+          <input v-model="loginForm.username" type="text" />
+        </label>
+        <label>
+          Password
+          <input v-model="loginForm.password" type="password" />
+        </label>
+      </div>
+      <button v-if="!authUser" :disabled="loginSaving" @click="submitLogin">
+        {{ loginSaving ? 'Signing in...' : 'Login' }}
+      </button>
+      <button v-else @click="signOut">Logout</button>
+    </section>
+
+    <section class="panel">
       <h2>Create Ticket</h2>
       <div class="row">
-        <label>
-          User ID
-          <input v-model.number="form.submitting_user_id" type="number" min="1" />
-        </label>
         <label>
           Status
           <select v-model="form.status">
@@ -189,10 +271,7 @@ onMounted(loadTickets);
         <p v-else class="meta">No comments yet.</p>
 
         <div class="row">
-          <label>
-            Commenter name
-            <input v-model="commentForm.commenter_name" type="text" />
-          </label>
+          <p class="meta">Commenting as {{ authUser?.username || 'Guest' }}</p>
         </div>
         <div class="row">
           <label>

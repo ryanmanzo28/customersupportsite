@@ -1,4 +1,73 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const AUTH_STORAGE_KEY = 'support_auth';
+
+function readAuth() {
+  const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+  if (!raw) {
+    return { token: null, user: null };
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { token: null, user: null };
+  }
+}
+
+function writeAuth(auth) {
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
+}
+
+function authHeaders(headers = {}) {
+  const { token } = readAuth();
+  return token
+    ? {
+        ...headers,
+        Authorization: `Bearer ${token}`,
+      }
+    : headers;
+}
+
+export function getAuthUser() {
+  return readAuth().user;
+}
+
+export function logout() {
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+export async function login(username, password) {
+  const res = await fetch(`${API_BASE}/api/auth/login.json`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username, password }),
+  });
+
+  const payload = await res.json();
+  if (!res.ok || !payload.success) {
+    throw new Error(payload.message || 'Login failed');
+  }
+
+  writeAuth(payload.data);
+  return payload.data.user;
+}
+
+export async function fetchMe() {
+  const res = await fetch(`${API_BASE}/api/auth/me.json`, {
+    headers: authHeaders(),
+  });
+
+  const payload = await res.json();
+  if (!res.ok || !payload.success) {
+    throw new Error(payload.message || 'Not authenticated');
+  }
+
+  const auth = readAuth();
+  writeAuth({ ...auth, user: payload.data });
+  return payload.data;
+}
 
 export async function fetchTickets() {
   const res = await fetch(`${API_BASE}/api/tickets.json`);
@@ -12,9 +81,9 @@ export async function fetchTickets() {
 export async function createTicket(input) {
   const res = await fetch(`${API_BASE}/api/tickets.json`, {
     method: 'POST',
-    headers: {
+    headers: authHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     body: JSON.stringify(input),
   });
 
@@ -38,9 +107,9 @@ export async function fetchTicketById(id) {
 export async function updateTicketStatus(id, status) {
   const res = await fetch(`${API_BASE}/api/tickets/${id}/status.json`, {
     method: 'PATCH',
-    headers: {
+    headers: authHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     body: JSON.stringify({ status }),
   });
 
@@ -55,9 +124,9 @@ export async function updateTicketStatus(id, status) {
 export async function createComment(ticketId, input) {
   const res = await fetch(`${API_BASE}/api/tickets/${ticketId}/comments.json`, {
     method: 'POST',
-    headers: {
+    headers: authHeaders({
       'Content-Type': 'application/json',
-    },
+    }),
     body: JSON.stringify(input),
   });
 

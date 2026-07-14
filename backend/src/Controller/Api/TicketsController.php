@@ -30,8 +30,12 @@ class TicketsController extends AppController
         $ticketsTable = $this->fetchTable('Tickets');
         $ticket = $ticketsTable->newEmptyEntity();
 
+        $authUser = $this->authenticatedUser();
         $payload = (array)$this->request->getData();
         $payload['status'] = $payload['status'] ?? 'open';
+        if ($authUser) {
+            $payload['submitting_user_id'] = $authUser['id'];
+        }
 
         $ticket = $ticketsTable->patchEntity($ticket, $payload);
 
@@ -88,10 +92,11 @@ class TicketsController extends AppController
         $commentsTable = $this->fetchTable('Comments');
         $comment = $commentsTable->newEmptyEntity();
 
+        $authUser = $this->authenticatedUser();
         $payload = [
             'ticket_id' => $ticket->id,
-            'user_id' => $this->request->getData('user_id') ?: null,
-            'commenter_name' => (string)($this->request->getData('commenter_name') ?? ''),
+            'user_id' => $authUser['id'] ?? ($this->request->getData('user_id') ?: null),
+            'commenter_name' => $authUser['username'] ?? (string)($this->request->getData('commenter_name') ?? ''),
             'comment_body' => (string)($this->request->getData('comment_body') ?? ''),
         ];
 
