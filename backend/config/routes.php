@@ -12,6 +12,9 @@ return function (RouteBuilder $routes): void {
     $routes->connect('/', ['prefix' => 'Api', 'controller' => 'Tickets', 'action' => 'index']);
 
     $routes->prefix('Api', function (RouteBuilder $api): void {
+        $api->connect('/health', ['controller' => 'System', 'action' => 'health'])->setMethods(['GET']);
+        $api->connect('/stats', ['controller' => 'System', 'action' => 'stats'])->setMethods(['GET']);
+
         $api->connect('/auth/login', ['controller' => 'Auth', 'action' => 'login'])->setMethods(['POST']);
         $api->connect('/auth/register', ['controller' => 'Auth', 'action' => 'register'])->setMethods(['POST']);
         $api->connect('/auth/me', ['controller' => 'Auth', 'action' => 'me'])->setMethods(['GET']);

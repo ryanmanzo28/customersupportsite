@@ -32,6 +32,9 @@ body {
     min-height: 100vh;
     color: var(--text);
     font: 100%/1.6 "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    letter-spacing: 0.01em;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
     background:
         radial-gradient(circle at top left, rgba(124, 58, 237, 0.10), transparent 28%),
         radial-gradient(circle at top right, rgba(33, 87, 213, 0.12), transparent 24%),
@@ -78,6 +81,12 @@ body::before {
     border: 1px solid rgba(219, 230, 247, 0.95);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 251, 255, 0.96));
     box-shadow: var(--shadow-md);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.hero-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
 }
 
 .hero-stats {
@@ -239,6 +248,12 @@ body::before {
     border: 1px solid rgba(219, 230, 247, 0.95);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 251, 255, 0.96));
     box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.panel:hover {
+    border-color: rgba(188, 208, 238, 0.95);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
 }
 
 .row {
@@ -247,6 +262,7 @@ body::before {
 
 .meta {
     color: var(--muted);
+    line-height: 1.45;
 }
 
 label {
@@ -311,6 +327,16 @@ button:disabled {
     cursor: not-allowed;
     filter: saturate(0.55);
     box-shadow: none;
+}
+
+button:focus-visible,
+.page-link:focus-visible,
+.secondary-cta:focus-visible,
+.primary-cta:focus-visible,
+.auth-switch:focus-visible {
+    outline: 3px solid rgba(33, 87, 213, 0.35);
+    outline-offset: 2px;
+    border-radius: 12px;
 }
 
 .page-nav {
@@ -599,6 +625,13 @@ button:disabled {
     border: 1px solid rgba(219, 230, 247, 0.95);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 255, 0.94));
     box-shadow: var(--shadow-sm);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.ticket:hover {
+    transform: translateY(-1px);
+    border-color: rgba(188, 208, 238, 0.95);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.09);
 }
 
 .ticket h3 {
@@ -609,6 +642,16 @@ hr {
     margin: 22px 0;
     border: 0;
     border-top: 1px solid rgba(226, 232, 240, 0.85);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 @media (max-width: 600px) {

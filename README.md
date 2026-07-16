@@ -1,41 +1,41 @@
 # Customer Support Site
 
-Monorepo starter with:
-- Backend: CakePHP (API-first starter)
-- Frontend: Vue 3 + Vite
-- Infra: Docker Compose (PHP/Apache + MySQL + Node)
+Simple local setup.
 
-## Structure
+## 1) Setup
 
-- backend: CakePHP backend code and Docker build files
-- frontend: Vue app
-- docker-compose.yml: local development stack
-
-## Quick Start
-
-1. Create a root .env file from .env.example (single source for backend, frontend, and Docker).
-
-2. From project root, run:
+From the project root, copy env file:
 
 ```powershell
-docker compose up --build
+Copy-Item .env.example .env
 ```
 
-3. Open apps:
+## 2) Start
+
+```powershell
+./startup.ps1
+```
+
+Or:
+
+```powershell
+docker compose up -d --build
+```
+
+## 3) Open
+
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8080
-- API endpoint: http://localhost:8080/api/tickets.json
+- Health: http://localhost:8080/api/health.json
+- API: http://localhost:8080/api/tickets.json
 
-## Seed Data
+## Demo Login
 
-The database is initialized on first startup from:
-- backend/docker/mysql/initdb.d/001_schema.sql
+- Username: demo
+- Password: demo
 
-A demo user is seeded:
-- username: demo
-- password: demo
+## Stop
 
-## Notes
-
-- Backend dependencies are installed in container startup via Composer.
-- Frontend dev server proxies /api requests to the backend service inside Docker.
+```powershell
+docker compose down
+```

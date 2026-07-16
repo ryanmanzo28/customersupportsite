@@ -5,16 +5,37 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\Controller\AppController;
+use Cake\Datasource\Exception\RecordNotFoundException;
 
 class TicketsController extends AppController
 {
     public function index()
     {
-        $tickets = $this->fetchTable('Tickets')
+        $query = $this->fetchTable('Tickets')
             ->find()
             ->select(['id', 'submitting_user_id', 'status', 'title', 'body', 'created'])
-            ->orderByDesc('id')
-            ->limit(50)
+            ->orderByDesc('id');
+
+        $status = trim((string)$this->request->getQuery('status', ''));
+        if (in_array($status, ['open', 'in_progress', 'closed'], true)) {
+            $query->where(['status' => $status]);
+        }
+
+        $search = trim((string)$this->request->getQuery('q', ''));
+        if ($search !== '') {
+            $query->where([
+                'OR' => [
+                    'title LIKE' => '%' . $search . '%',
+                    'body LIKE' => '%' . $search . '%',
+                ],
+            ]);
+        }
+
+        $limit = (int)$this->request->getQuery('limit', 50);
+        $limit = max(1, min(200, $limit));
+
+        $tickets = $query
+            ->limit($limit)
             ->all()
             ->toList();
 
@@ -86,8 +107,17 @@ class TicketsController extends AppController
 
     public function addComment(int $id)
     {
-        $ticketsTable = $this->fetchTable('Tickets');
-        $ticket = $ticketsTable->get($id);
+        try {
+            $ticket = $this->fetchTable('Tickets')->get($id);
+        } catch (RecordNotFoundException) {
+            $this->response = $this->response->withStatus(404);
+            $this->set([
+                'success' => false,
+                'message' => 'Ticket not found',
+                '_serialize' => ['success', 'message'],
+            ]);
+            return;
+        }
 
         $commentsTable = $this->fetchTable('Comments');
         $comment = $commentsTable->newEmptyEntity();
@@ -122,7 +152,18 @@ class TicketsController extends AppController
     public function updateStatus(int $id)
     {
         $ticketsTable = $this->fetchTable('Tickets');
-        $ticket = $ticketsTable->get($id);
+
+        try {
+            $ticket = $ticketsTable->get($id);
+        } catch (RecordNotFoundException) {
+            $this->response = $this->response->withStatus(404);
+            $this->set([
+                'success' => false,
+                'message' => 'Ticket not found',
+                '_serialize' => ['success', 'message'],
+            ]);
+            return;
+        }
 
         $status = (string)($this->request->getData('status') ?? '');
         if ($status === '') {
