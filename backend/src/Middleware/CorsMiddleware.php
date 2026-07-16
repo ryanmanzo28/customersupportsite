@@ -45,7 +45,7 @@ class CorsMiddleware implements MiddlewareInterface
             return $origin;
         }
 
-        return $allowedOrigins[0] ?? '';
+        return '';
     }
 
     private function allowedOrigins(): array

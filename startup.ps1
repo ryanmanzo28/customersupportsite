@@ -15,14 +15,14 @@ $servedOutDir = Join-Path $root 'frontend/public/pages'
 $vueTempOutDir = Join-Path $root 'frontend/.startup-build'
 
 # This is the single served folder for startup-generated frontend artifacts.
+if (Test-Path $servedOutDir) {
+    Remove-Item -LiteralPath $servedOutDir -Recurse -Force
+}
 New-Item -ItemType Directory -Force -Path $servedOutDir | Out-Null
 
 if (-not $SkipPugCompile) {
     if (Test-Path $pagesDir) {
         Write-Host '==> Compiling Pug templates from frontend/pages to frontend/public/pages/*.html...' -ForegroundColor Cyan
-
-        # Remove stale compiled pages so deleted templates do not linger.
-        Get-ChildItem -Path $servedOutDir -Filter '*.html' -File -ErrorAction SilentlyContinue | Remove-Item -Force
 
         $pugFiles = Get-ChildItem -Path $pagesDir -Filter '*.pug' -Recurse -File
         if ($pugFiles.Count -gt 0) {
@@ -77,7 +77,16 @@ try {
         npm run build -- --outDir .startup-build --emptyOutDir true
 
         if (Test-Path $vueTempOutDir) {
-            Copy-Item -Path (Join-Path $vueTempOutDir '*') -Destination $servedOutDir -Recurse -Force
+            $vueIndex = Join-Path $vueTempOutDir 'index.html'
+            if (Test-Path $vueIndex) {
+                Copy-Item -Path $vueIndex -Destination (Join-Path $servedOutDir 'index.html') -Force
+            }
+
+            $vueAssetsDir = Join-Path $vueTempOutDir 'assets'
+            if (Test-Path $vueAssetsDir) {
+                Copy-Item -Path $vueAssetsDir -Destination (Join-Path $servedOutDir 'assets') -Recurse -Force
+            }
+
             Remove-Item -LiteralPath $vueTempOutDir -Recurse -Force
         }
     }

@@ -40,8 +40,13 @@ class AuthMiddleware implements MiddlewareInterface
             return null;
         }
 
-        $decoded = json_decode(base64_decode($payload), true);
+        $decoded = json_decode(base64_decode($payload, true), true);
         if (!is_array($decoded) || empty($decoded['id']) || empty($decoded['username'])) {
+            return null;
+        }
+
+        $expiresAt = (int)($decoded['exp'] ?? 0);
+        if ($expiresAt > 0 && $expiresAt < time()) {
             return null;
         }
 

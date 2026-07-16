@@ -121,7 +121,7 @@ export async function fetchMe() {
   });
 
   const payload = await parseJsonSafely(res);
-  if (!res.ok || !payload.success) {
+  if (!res.ok || !payload?.success) {
     throw new Error(extractErrorMessage(payload, 'Not authenticated'));
   }
 
@@ -149,7 +149,7 @@ export async function createTicket(input) {
   });
 
   const payload = await parseJsonSafely(res);
-  if (!res.ok || !payload.success) {
+  if (!res.ok || !payload?.success) {
     throw new Error(extractErrorMessage(payload, 'Ticket save failed'));
   }
 
@@ -159,7 +159,7 @@ export async function createTicket(input) {
 export async function fetchTicketById(id) {
   const res = await fetch(buildApiUrl(`/api/tickets/${id}.json`));
   const payload = await parseJsonSafely(res);
-  if (!res.ok || !payload.success) {
+  if (!res.ok || !payload?.success) {
     throw new Error(extractErrorMessage(payload, 'Failed to load ticket'));
   }
   return payload.data;
@@ -175,7 +175,7 @@ export async function updateTicketStatus(id, status) {
   });
 
   const payload = await parseJsonSafely(res);
-  if (!res.ok || !payload.success) {
+  if (!res.ok || !payload?.success) {
     throw new Error(extractErrorMessage(payload, 'Failed to update status'));
   }
 
@@ -192,7 +192,7 @@ export async function createComment(ticketId, input) {
   });
 
   const payload = await parseJsonSafely(res);
-  if (!res.ok || !payload.success) {
+  if (!res.ok || !payload?.success) {
     throw new Error(extractErrorMessage(payload, 'Failed to add comment'));
   }
 
