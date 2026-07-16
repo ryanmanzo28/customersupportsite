@@ -5,6 +5,21 @@ function buildApiUrl(path) {
   return API_BASE ? `${API_BASE}${path}` : path;
 }
 
+function buildQueryString(params = {}) {
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') {
+      continue;
+    }
+
+    searchParams.set(key, String(value));
+  }
+
+  const query = searchParams.toString();
+  return query ? `?${query}` : '';
+}
+
 async function parseJsonSafely(res) {
   const text = await res.text();
   if (!text) {
@@ -130,13 +145,24 @@ export async function fetchMe() {
   return payload.data;
 }
 
-export async function fetchTickets() {
-  const res = await fetch(buildApiUrl('/api/tickets.json'));
+export async function fetchTickets(options = {}) {
+  const res = await fetch(buildApiUrl(`/api/tickets.json${buildQueryString(options)}`));
   const payload = await parseJsonSafely(res);
   if (!res.ok) {
     throw new Error(extractErrorMessage(payload, 'Failed to load tickets'));
   }
   return payload.data || [];
+}
+
+export async function fetchStats() {
+  const res = await fetch(buildApiUrl('/api/stats.json'));
+  const payload = await parseJsonSafely(res);
+
+  if (!res.ok || !payload?.success) {
+    throw new Error(extractErrorMessage(payload, 'Failed to load stats'));
+  }
+
+  return payload.data || { tickets: {}, comments: {} };
 }
 
 export async function createTicket(input) {

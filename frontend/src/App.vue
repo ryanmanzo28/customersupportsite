@@ -4,6 +4,7 @@ import {
   createComment,
   createTicket,
   fetchMe,
+  fetchStats,
   fetchTicketById,
   fetchTickets,
   getAuthUser,
@@ -22,6 +23,7 @@ const error = ref('');
 const authUser = ref(getAuthUser());
 const redirectingToLogin = ref(false);
 const lastUpdatedAt = ref(null);
+const backendStats = ref(null);
 
 const ticketQuery = ref('');
 const ticketStatusFilter = ref('all');
@@ -53,6 +55,18 @@ const filteredTickets = computed(() => {
 const selectedCommentCount = computed(() => selectedTicket.value?.comments?.length || 0);
 const hasActiveFilters = computed(() => ticketStatusFilter.value !== 'all' || ticketQuery.value.trim() !== '');
 const hasAnyTickets = computed(() => ticketCounts.value.total > 0);
+const backendCommentCount = computed(() => backendStats.value?.comments?.total ?? 0);
+const backendTicketTotal = computed(() => backendStats.value?.tickets?.total ?? ticketCounts.value.total);
+const backendOpenCount = computed(() => backendStats.value?.tickets?.open ?? ticketCounts.value.open);
+const backendActiveCount = computed(() => backendStats.value?.tickets?.in_progress ?? ticketCounts.value.in_progress);
+const backendClosedCount = computed(() => backendStats.value?.tickets?.closed ?? ticketCounts.value.closed);
+const backendHealthLabel = computed(() => {
+  if (!backendStats.value) {
+    return 'Syncing...';
+  }
+
+  return 'Backend synced';
+});
 const lastUpdatedLabel = computed(() => {
   if (!lastUpdatedAt.value) {
     return 'Not refreshed yet';
@@ -77,7 +91,12 @@ async function loadTickets() {
   loading.value = true;
   error.value = '';
   try {
-    tickets.value = await fetchTickets();
+    tickets.value = await fetchTickets({
+      q: ticketQuery.value.trim(),
+      status: ticketStatusFilter.value === 'all' ? '' : ticketStatusFilter.value,
+      limit: 50,
+    });
+    backendStats.value = await fetchStats();
     lastUpdatedAt.value = Date.now();
   } catch (e) {
     error.value = e.message;
@@ -215,9 +234,10 @@ function resetTicketDraft() {
   form.body = '';
 }
 
-function clearFilters() {
+async function clearFilters() {
   ticketQuery.value = '';
   ticketStatusFilter.value = 'all';
+  await refreshTickets();
 }
 
 onMounted(async () => {
@@ -252,23 +272,23 @@ onMounted(async () => {
         <p class="hero-kicker">Ticket snapshot</p>
         <div class="hero-stats">
           <article class="mini-stat">
-            <strong>{{ ticketCounts.total }}</strong>
+            <strong>{{ backendTicketTotal }}</strong>
             <span>Total</span>
           </article>
           <article class="mini-stat">
-            <strong>{{ ticketCounts.open }}</strong>
+            <strong>{{ backendOpenCount }}</strong>
             <span>Open</span>
           </article>
           <article class="mini-stat">
-            <strong>{{ ticketCounts.in_progress }}</strong>
+            <strong>{{ backendActiveCount }}</strong>
             <span>Active</span>
           </article>
           <article class="mini-stat">
-            <strong>{{ ticketCounts.closed }}</strong>
+            <strong>{{ backendClosedCount }}</strong>
             <span>Closed</span>
           </article>
         </div>
-        <p class="meta">Last refreshed: {{ lastUpdatedLabel }}</p>
+        <p class="meta">{{ backendHealthLabel }} | Comments: {{ backendCommentCount }} | Last refreshed: {{ lastUpdatedLabel }}</p>
       </aside>
     </header>
 
@@ -339,8 +359,8 @@ onMounted(async () => {
           </button>
         </div>
         <div class="toolbar">
-          <input v-model="ticketQuery" type="search" placeholder="Search tickets" />
-          <select v-model="ticketStatusFilter">
+          <input v-model="ticketQuery" type="search" placeholder="Search tickets" @keyup.enter="refreshTickets" />
+          <select v-model="ticketStatusFilter" @change="refreshTickets">
             <option value="all">All statuses</option>
             <option value="open">Open</option>
             <option value="in_progress">In Progress</option>
@@ -349,6 +369,7 @@ onMounted(async () => {
         </div>
         <div class="cta-row" v-if="hasActiveFilters">
           <button class="secondary-action" type="button" @click="clearFilters">Clear filters</button>
+          <button type="button" @click="refreshTickets">Search</button>
         </div>
         <p class="meta">Showing {{ filteredTickets.length }} of {{ ticketCounts.total }} tickets</p>
         <p v-if="loading" class="meta">Loading tickets...</p>
