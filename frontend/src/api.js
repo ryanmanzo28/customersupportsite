@@ -1,5 +1,22 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 const AUTH_STORAGE_KEY = 'support_auth';
+
+function buildApiUrl(path) {
+  return API_BASE ? `${API_BASE}${path}` : path;
+}
+
+async function parseJsonSafely(res) {
+  const text = await res.text();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
 
 function extractErrorMessage(payload, fallback) {
   if (!payload || typeof payload !== 'object') {
@@ -61,7 +78,7 @@ function requireAuthData(payload, fallbackMessage) {
 }
 
 export async function login(username, password) {
-  const res = await fetch(`${API_BASE}/api/auth/login.json`, {
+  const res = await fetch(buildApiUrl('/api/auth/login.json'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -69,9 +86,9 @@ export async function login(username, password) {
     body: JSON.stringify({ username, password }),
   });
 
-  const payload = await res.json();
+  const payload = await parseJsonSafely(res);
   if (!res.ok) {
-    throw new Error(payload.message || 'Login failed');
+    throw new Error(extractErrorMessage(payload, 'Login failed'));
   }
 
   const authData = requireAuthData(payload, 'Login succeeded but no JWT token was returned');
@@ -80,7 +97,7 @@ export async function login(username, password) {
 }
 
 export async function register(username, password) {
-  const res = await fetch(`${API_BASE}/api/auth/register.json`, {
+  const res = await fetch(buildApiUrl('/api/auth/register.json'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -88,9 +105,9 @@ export async function register(username, password) {
     body: JSON.stringify({ username, password }),
   });
 
-  const payload = await res.json();
+  const payload = await parseJsonSafely(res);
   if (!res.ok) {
-    throw new Error(payload.message || 'Registration failed');
+    throw new Error(extractErrorMessage(payload, 'Registration failed'));
   }
 
   const authData = requireAuthData(payload, 'Registration succeeded but no JWT token was returned');
@@ -99,13 +116,13 @@ export async function register(username, password) {
 }
 
 export async function fetchMe() {
-  const res = await fetch(`${API_BASE}/api/auth/me.json`, {
+  const res = await fetch(buildApiUrl('/api/auth/me.json'), {
     headers: authHeaders(),
   });
 
-  const payload = await res.json();
+  const payload = await parseJsonSafely(res);
   if (!res.ok || !payload.success) {
-    throw new Error(payload.message || 'Not authenticated');
+    throw new Error(extractErrorMessage(payload, 'Not authenticated'));
   }
 
   const auth = readAuth();
@@ -114,16 +131,16 @@ export async function fetchMe() {
 }
 
 export async function fetchTickets() {
-  const res = await fetch(`${API_BASE}/api/tickets.json`);
+  const res = await fetch(buildApiUrl('/api/tickets.json'));
+  const payload = await parseJsonSafely(res);
   if (!res.ok) {
-    throw new Error('Failed to load tickets');
+    throw new Error(extractErrorMessage(payload, 'Failed to load tickets'));
   }
-  const payload = await res.json();
   return payload.data || [];
 }
 
 export async function createTicket(input) {
-  const res = await fetch(`${API_BASE}/api/tickets.json`, {
+  const res = await fetch(buildApiUrl('/api/tickets.json'), {
     method: 'POST',
     headers: authHeaders({
       'Content-Type': 'application/json',
@@ -131,7 +148,7 @@ export async function createTicket(input) {
     body: JSON.stringify(input),
   });
 
-  const payload = await res.json();
+  const payload = await parseJsonSafely(res);
   if (!res.ok || !payload.success) {
     throw new Error(extractErrorMessage(payload, 'Ticket save failed'));
   }
@@ -140,8 +157,8 @@ export async function createTicket(input) {
 }
 
 export async function fetchTicketById(id) {
-  const res = await fetch(`${API_BASE}/api/tickets/${id}.json`);
-  const payload = await res.json();
+  const res = await fetch(buildApiUrl(`/api/tickets/${id}.json`));
+  const payload = await parseJsonSafely(res);
   if (!res.ok || !payload.success) {
     throw new Error(extractErrorMessage(payload, 'Failed to load ticket'));
   }
@@ -149,7 +166,7 @@ export async function fetchTicketById(id) {
 }
 
 export async function updateTicketStatus(id, status) {
-  const res = await fetch(`${API_BASE}/api/tickets/${id}/status.json`, {
+  const res = await fetch(buildApiUrl(`/api/tickets/${id}/status.json`), {
     method: 'PATCH',
     headers: authHeaders({
       'Content-Type': 'application/json',
@@ -157,7 +174,7 @@ export async function updateTicketStatus(id, status) {
     body: JSON.stringify({ status }),
   });
 
-  const payload = await res.json();
+  const payload = await parseJsonSafely(res);
   if (!res.ok || !payload.success) {
     throw new Error(extractErrorMessage(payload, 'Failed to update status'));
   }
@@ -166,7 +183,7 @@ export async function updateTicketStatus(id, status) {
 }
 
 export async function createComment(ticketId, input) {
-  const res = await fetch(`${API_BASE}/api/tickets/${ticketId}/comments.json`, {
+  const res = await fetch(buildApiUrl(`/api/tickets/${ticketId}/comments.json`), {
     method: 'POST',
     headers: authHeaders({
       'Content-Type': 'application/json',
@@ -174,7 +191,7 @@ export async function createComment(ticketId, input) {
     body: JSON.stringify(input),
   });
 
-  const payload = await res.json();
+  const payload = await parseJsonSafely(res);
   if (!res.ok || !payload.success) {
     throw new Error(extractErrorMessage(payload, 'Failed to add comment'));
   }

@@ -7,12 +7,8 @@ services:
     command: sh -c "composer install && apache2-foreground"
     ports:
       - "8080:80"
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_USERNAME: app
-      DB_PASSWORD: app
-      DB_DATABASE: support
+    env_file:
+      - ./.env
     volumes:
       - ./backend:/var/www/html
     depends_on:
@@ -25,6 +21,8 @@ services:
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
     ports:
       - "5173:5173"
+    env_file:
+      - ./.env
     volumes:
       - ./frontend:/app
     depends_on:
@@ -34,11 +32,8 @@ services:
     image: mysql:8.4
     container_name: support_db
     restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: support
-      MYSQL_USER: app
-      MYSQL_PASSWORD: app
+    env_file:
+      - ./.env
     ports:
       - "3307:3306"
     volumes:

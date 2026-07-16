@@ -652,6 +652,19 @@ hr {
 }
 
 </style><title>Login</title></head><body><main class="page"><nav class="page-nav"><a class="page-link" href="/pages/home.html">Home</a><a class="page-link" href="/pages/about.html">About</a><a class="page-link" href="/pages/contact.html">Contact</a><a class="page-link" href="/pages/register.html">Register</a></nav><header class="register-hero"><div><p class="register-kicker">Account Access</p><h1>Sign In</h1><p class="lead">Log in to create tickets, post comments, and track support progress.</p></div><aside><h2 class="quick-title">Need an account?</h2><div class="cta-row"><a class="signup-link primary-cta" href="/pages/register.html">Create account</a><a class="page-link secondary-cta" href="/pages/home.html">Back to home</a></div></aside></header><section class="panel auth-panel"><div class="auth-header"><h2>Login Form</h2><span class="auth-badge">Secure Access</span></div><p class="meta" id="login-feedback">Enter your username and password.</p><form id="login-form"><div class="row auth-grid"><label for="username">Username<input id="username" type="text" name="username" autocomplete="username" placeholder="demo" required></label><label for="password">Password<input id="password" type="password" name="password" autocomplete="current-password" placeholder="demo" required></label></div><div class="auth-actions"><button id="login-submit" type="submit">Login</button></div><a class="auth-switch" href="/pages/app.html">Use ticket app login instead</a></form></section></main><script>(function () {
+    try {
+        var existingAuthRaw = localStorage.getItem('support_auth');
+        if (existingAuthRaw) {
+            var existingAuth = JSON.parse(existingAuthRaw);
+            if (existingAuth && existingAuth.token) {
+                window.location.replace('/pages/app.html');
+                return;
+            }
+        }
+    } catch (e) {
+        /* Ignore invalid localStorage payloads. */
+    }
+
     var form = document.getElementById('login-form');
     var submitButton = document.getElementById('login-submit');
     var feedback = document.getElementById('login-feedback');

@@ -13,13 +13,15 @@ Monorepo starter with:
 
 ## Quick Start
 
-1. From project root, run:
+1. Create a root .env file from .env.example (single source for backend, frontend, and Docker).
+
+2. From project root, run:
 
 ```powershell
 docker compose up --build
 ```
 
-2. Open apps:
+3. Open apps:
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8080
 - API endpoint: http://localhost:8080/api/tickets.json

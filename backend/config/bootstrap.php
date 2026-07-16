@@ -33,8 +33,15 @@ if (!defined('CAKE')) {
     define('CAKE', CORE_PATH . 'src' . DIRECTORY_SEPARATOR);
 }
 
-$envPath = dirname(__DIR__) . '/.env';
-if (is_file($envPath)) {
+$envPaths = [
+    dirname(__DIR__, 2) . '/.env',
+    dirname(__DIR__) . '/.env',
+];
+foreach ($envPaths as $envPath) {
+    if (!is_file($envPath)) {
+        continue;
+    }
+
     $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
     foreach ($lines as $line) {
         $line = trim($line);
@@ -62,6 +69,8 @@ if (is_file($envPath)) {
             $_SERVER[$name] = $value;
         }
     }
+
+    break;
 }
 
 if (!function_exists('env')) {

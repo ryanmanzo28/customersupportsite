@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,16 +26,21 @@ const servePublicPagesHtml = {
   },
 };
 
-export default defineConfig({
-  plugins: [vue(), servePublicPagesHtml],
-  server: {
-    host: '0.0.0.0',
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: process.env.VITE_PROXY_TARGET || 'http://backend',
-        changeOrigin: true,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, path.resolve(__dirname, '..'), '');
+
+  return {
+    envDir: '..',
+    plugins: [vue(), servePublicPagesHtml],
+    server: {
+      host: '0.0.0.0',
+      port: 5173,
+      proxy: {
+        '/api': {
+          target: env.VITE_PROXY_TARGET || 'http://backend',
+          changeOrigin: true,
+        },
       },
     },
-  },
+  };
 });

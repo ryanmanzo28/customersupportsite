@@ -11,21 +11,24 @@ Write-Host '==> Building and starting Docker services (backend/frontend/db)...' 
 docker compose up -d --build
 
 $pagesDir = Join-Path $root 'frontend/pages'
-$pugOutDir = Join-Path $root 'frontend/public/pages'
+$servedOutDir = Join-Path $root 'frontend/public/pages'
+$vueTempOutDir = Join-Path $root 'frontend/.startup-build'
+
+# This is the single served folder for startup-generated frontend artifacts.
+New-Item -ItemType Directory -Force -Path $servedOutDir | Out-Null
 
 if (-not $SkipPugCompile) {
     if (Test-Path $pagesDir) {
         Write-Host '==> Compiling Pug templates from frontend/pages to frontend/public/pages/*.html...' -ForegroundColor Cyan
-        New-Item -ItemType Directory -Force -Path $pugOutDir | Out-Null
 
         # Remove stale compiled pages so deleted templates do not linger.
-        Get-ChildItem -Path $pugOutDir -Filter '*.html' -File -ErrorAction SilentlyContinue | Remove-Item -Force
+        Get-ChildItem -Path $servedOutDir -Filter '*.html' -File -ErrorAction SilentlyContinue | Remove-Item -Force
 
         $pugFiles = Get-ChildItem -Path $pagesDir -Filter '*.pug' -Recurse -File
         if ($pugFiles.Count -gt 0) {
             $compileFailures = 0
             foreach ($pugFile in $pugFiles) {
-                npx --yes pug-cli "$($pugFile.FullName)" --basedir $pagesDir --out $pugOutDir
+                npx --yes pug-cli "$($pugFile.FullName)" --basedir $pagesDir --out $servedOutDir
                 if ($LASTEXITCODE -ne 0) {
                     $compileFailures++
                     Write-Host ("Failed to compile Pug file: " + $pugFile.FullName) -ForegroundColor Yellow
@@ -45,9 +48,9 @@ if (-not $SkipPugCompile) {
 
 $appEntry = Join-Path $root 'frontend/app.html'
 if (Test-Path $appEntry) {
-    Copy-Item -Path $appEntry -Destination (Join-Path $pugOutDir 'app.html') -Force
+    Copy-Item -Path $appEntry -Destination (Join-Path $servedOutDir 'app.html') -Force
 
-    $appHtml = Join-Path $pugOutDir 'app.html'
+    $appHtml = Join-Path $servedOutDir 'app.html'
     if (Test-Path $appHtml) {
         $content = Get-Content -Path $appHtml -Raw
         $content = $content -replace '<title>[^<]*</title>', '<title>Support Dashboard</title>'
@@ -66,8 +69,17 @@ try {
     }
 
     if (-not $SkipVueBuild) {
-        Write-Host '==> Building Vue app with Vite...' -ForegroundColor Cyan
-        npm run build
+        Write-Host '==> Building Vue app with Vite (temp output, then syncing to frontend/public/pages)...' -ForegroundColor Cyan
+        if (Test-Path $vueTempOutDir) {
+            Remove-Item -LiteralPath $vueTempOutDir -Recurse -Force
+        }
+
+        npm run build -- --outDir .startup-build --emptyOutDir true
+
+        if (Test-Path $vueTempOutDir) {
+            Copy-Item -Path (Join-Path $vueTempOutDir '*') -Destination $servedOutDir -Recurse -Force
+            Remove-Item -LiteralPath $vueTempOutDir -Recurse -Force
+        }
     }
 }
 finally {
@@ -82,3 +94,4 @@ Write-Host 'Startup complete.' -ForegroundColor Green
 Write-Host 'Frontend dev server: http://localhost:5173'
 Write-Host 'Backend:            http://localhost:8080'
 Write-Host 'API:                http://localhost:8080/api/tickets.json'
+Write-Host ('Generated files:    ' + $servedOutDir)

@@ -44,19 +44,6 @@ html
 
         script.
             (function () {
-                try {
-                    var existingAuthRaw = localStorage.getItem('support_auth');
-                    if (existingAuthRaw) {
-                        var existingAuth = JSON.parse(existingAuthRaw);
-                        if (existingAuth && existingAuth.token) {
-                            window.location.replace('/pages/app.html');
-                            return;
-                        }
-                    }
-                } catch (e) {
-                    /* Ignore invalid localStorage payloads. */
-                }
-
                 var form = document.getElementById('login-form');
                 var submitButton = document.getElementById('login-submit');
                 var feedback = document.getElementById('login-feedback');
