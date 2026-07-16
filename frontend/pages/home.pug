@@ -9,16 +9,23 @@ html
   body
     main.page.home-page
       nav.page-nav
-        a.page-link(href="/pages/home.html") Home
-        a.page-link(href="/pages/about.html") About
-        a.page-link(href="/pages/contact.html") Contact
-        a.page-link(href="/pages/login.html") Login
+        a.page-brand(href="/pages/home.html") Support Portal
+        div.page-nav-links
+          a.page-link(href="/pages/home.html") Home
+          a.page-link(href="/pages/about.html") About
+          a.page-link(href="/pages/contact.html") Contact
+          a.page-link(href="/pages/login.html") Login
       header.app-hero
         div
           p.hero-kicker Support Portal
           h1.welcome-message Welcome to the Support Site
           p.lead
             | Manage support tickets, track updates, and communicate with your team in one place.
+          p.hero-meta Fast demo-ready flow with login, ticket creation, comments, and status updates.
+          .hero-pills
+            span.hero-pill Live dashboard
+            span.hero-pill Demo data included
+            span.hero-pill Comment threads
           .cta-row
             a#cta-create-account.signup-link.primary-cta(href="/pages/register.html") Create your account
             a.page-link.secondary-cta(href="/pages/app.html") Open ticket app

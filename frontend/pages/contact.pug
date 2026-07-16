@@ -9,16 +9,19 @@ html
     body
         main.page
             nav.page-nav
-                a.page-link(href="/pages/home.html") Home
-                a.page-link(href="/pages/about.html") About
-                a.page-link(href="/pages/contact.html") Contact
-                a.page-link(href="/pages/login.html") Login
+                a.page-brand(href="/pages/home.html") Support Portal
+                div.page-nav-links
+                    a.page-link(href="/pages/home.html") Home
+                    a.page-link(href="/pages/about.html") About
+                    a.page-link(href="/pages/contact.html") Contact
+                    a.page-link(href="/pages/login.html") Login
             header.register-hero
                 div
                     p.register-kicker Contact Support
                     h1 Contact Support
                     p.lead
                         | Need help? Reach out and we will get back to you as soon as possible.
+                    p.hero-meta Fast response times and ticket history keep the handoff clean.
                     .cta-row
                         a.signup-link.primary-cta(href="mailto:support@example.com") Email support
                         a.page-link.secondary-cta(href="/pages/app.html") Open ticket app

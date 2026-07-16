@@ -97,6 +97,14 @@ async function loadTickets() {
       limit: 50,
     });
     backendStats.value = await fetchStats();
+
+    if (selectedTicket.value?.id) {
+      const refreshedTicket = tickets.value.find((ticket) => ticket.id === selectedTicket.value.id);
+      if (refreshedTicket) {
+        selectedTicket.value = await fetchTicketById(refreshedTicket.id);
+      }
+    }
+
     lastUpdatedAt.value = Date.now();
   } catch (e) {
     error.value = e.message;
@@ -146,6 +154,7 @@ async function selectTicket(id) {
   error.value = '';
   try {
     selectedTicket.value = await fetchTicketById(id);
+    commentForm.comment_body = '';
   } catch (e) {
     error.value = e.message;
   } finally {
@@ -237,6 +246,7 @@ function resetTicketDraft() {
 async function clearFilters() {
   ticketQuery.value = '';
   ticketStatusFilter.value = 'all';
+  selectedTicket.value = null;
   await refreshTickets();
 }
 
