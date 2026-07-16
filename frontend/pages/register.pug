@@ -68,8 +68,33 @@ html
                     match: document.getElementById('check-match')
                 };
 
+                function parseJsonSafely(response) {
+                    return response.text().then(function (text) {
+                        if (!text) {
+                            return null;
+                        }
+
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            return null;
+                        }
+                    });
+                }
+
                 if (!form || !submitButton || !feedback || !passwordInput || !passwordConfirmInput) {
                     return;
+                }
+
+                try {
+                    var raw = localStorage.getItem('support_auth');
+                    var auth = raw ? JSON.parse(raw) : null;
+                    if (auth && auth.token) {
+                        window.location.replace('/pages/app.html');
+                        return;
+                    }
+                } catch (e) {
+                    /* Ignore invalid local storage payloads. */
                 }
 
                 function updateChecks() {
@@ -108,15 +133,22 @@ html
                     feedback.textContent = 'Creating your account...';
 
                     try {
+                        var controller = new AbortController();
+                        var timeoutId = setTimeout(function () {
+                            controller.abort();
+                        }, 8000);
+
                         var response = await fetch('/api/auth/register.json', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({ username: username, password: password })
+                            body: JSON.stringify({ username: username, password: password }),
+                            signal: controller.signal
                         });
+                        clearTimeout(timeoutId);
 
-                        var payload = await response.json();
+                        var payload = await parseJsonSafely(response);
                         if (!response.ok || !payload.success || !payload.data || !payload.data.token) {
                             throw new Error((payload && payload.message) || 'Registration failed');
                         }
@@ -125,6 +157,11 @@ html
                         feedback.textContent = 'Account created. Redirecting to the dashboard...';
                         window.location.href = '/pages/app.html';
                     } catch (error) {
+                        if (error && error.name === 'AbortError') {
+                            feedback.textContent = 'Registration timed out. Please try again.';
+                            return;
+                        }
+
                         feedback.textContent = (error && error.message) || 'Registration failed';
                     } finally {
                         submitButton.disabled = false;

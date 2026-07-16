@@ -48,8 +48,33 @@ html
                 var submitButton = document.getElementById('login-submit');
                 var feedback = document.getElementById('login-feedback');
 
+                function parseJsonSafely(response) {
+                    return response.text().then(function (text) {
+                        if (!text) {
+                            return null;
+                        }
+
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            return null;
+                        }
+                    });
+                }
+
                 if (!form || !submitButton || !feedback) {
                     return;
+                }
+
+                try {
+                    var raw = localStorage.getItem('support_auth');
+                    var auth = raw ? JSON.parse(raw) : null;
+                    if (auth && auth.token) {
+                        window.location.replace('/pages/app.html');
+                        return;
+                    }
+                } catch (e) {
+                    /* Ignore invalid local storage payloads. */
                 }
 
                 form.addEventListener('submit', async function (event) {
@@ -69,15 +94,22 @@ html
                     feedback.textContent = 'Signing in...';
 
                     try {
+                        var controller = new AbortController();
+                        var timeoutId = setTimeout(function () {
+                            controller.abort();
+                        }, 8000);
+
                         var response = await fetch('/api/auth/login.json', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({ username: username, password: password })
+                            body: JSON.stringify({ username: username, password: password }),
+                            signal: controller.signal
                         });
+                        clearTimeout(timeoutId);
 
-                        var payload = await response.json();
+                        var payload = await parseJsonSafely(response);
                         if (!response.ok || !payload.success || !payload.data || !payload.data.token) {
                             throw new Error((payload && payload.message) || 'Login failed');
                         }
@@ -86,6 +118,11 @@ html
                         feedback.textContent = 'Login successful. Redirecting...';
                         window.location.href = '/pages/app.html';
                     } catch (error) {
+                        if (error && error.name === 'AbortError') {
+                            feedback.textContent = 'Login timed out. Please try again.';
+                            return;
+                        }
+
                         feedback.textContent = (error && error.message) || 'Login failed';
                     } finally {
                         submitButton.disabled = false;
