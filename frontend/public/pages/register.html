@@ -1,4 +1,4 @@
-:root {
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>:root {
     color-scheme: light;
     --bg-1: #f7f4ef;
     --bg-2: #eef4ff;
@@ -651,3 +651,93 @@ hr {
     }
 }
 
+</style><title>Register</title></head><body><main class="page"><nav class="page-nav"><a class="page-link" href="/pages/home.html">Home</a><a class="page-link" href="/pages/about.html">About</a><a class="page-link" href="/pages/contact.html">Contact</a><a class="page-link" href="/pages/login.html">Login</a></nav><header class="register-hero"><div><p class="register-kicker">Account Setup</p><h1>Create Your Support Account</h1><p class="lead">Register in a few seconds, then manage tickets and replies in one place.</p><div class="cta-row"><a class="signup-link primary-cta" href="/pages/login.html">Already have an account?</a><a class="page-link secondary-cta" href="/pages/home.html">Back to home</a></div></div><aside><h2 class="quick-title">What you get</h2><ul class="register-feature-list"><li>Track ticket progress from open to closed.</li><li>Post comments directly on active tickets.</li><li>Keep your support history tied to your username.</li></ul></aside></header><section class="panel auth-panel"><div class="auth-header"><h2>Register Form</h2><span class="auth-badge">Account Creation</span></div><p class="meta" id="register-feedback">Enter a username and create a secure password.</p><form id="register-form"><div class="row auth-grid"><label for="username">Username<input id="username" type="text" name="username" autocomplete="username" placeholder="Pick a username" required></label><label for="password">Password<input id="password" type="password" name="password" autocomplete="new-password" placeholder="Create a password" required></label><label for="passwordConfirm">Confirm Password<input id="passwordConfirm" type="password" name="passwordConfirm" autocomplete="new-password" placeholder="Re-enter password" required></label></div><ul class="password-checks"><li id="check-length">At least 8 characters</li><li id="check-letter">Includes a letter</li><li id="check-number">Includes a number</li><li id="check-match">Passwords match</li></ul><div class="auth-actions"><button id="register-submit" type="submit">Create Account</button></div><a class="auth-switch" href="/pages/login.html">Use existing login instead</a></form></section></main><script>(function () {
+    try {
+        var existingAuthRaw = localStorage.getItem('support_auth');
+        if (existingAuthRaw) {
+            var existingAuth = JSON.parse(existingAuthRaw);
+            if (existingAuth && existingAuth.token) {
+                window.location.replace('/pages/app.html');
+                return;
+            }
+        }
+    } catch (e) {
+        /* Ignore invalid localStorage payloads. */
+    }
+
+    var form = document.getElementById('register-form');
+    var submitButton = document.getElementById('register-submit');
+    var feedback = document.getElementById('register-feedback');
+    var passwordInput = document.getElementById('password');
+    var passwordConfirmInput = document.getElementById('passwordConfirm');
+    var checks = {
+        length: document.getElementById('check-length'),
+        letter: document.getElementById('check-letter'),
+        number: document.getElementById('check-number'),
+        match: document.getElementById('check-match')
+    };
+
+    if (!form || !submitButton || !feedback || !passwordInput || !passwordConfirmInput) {
+        return;
+    }
+
+    function updateChecks() {
+        var password = String(passwordInput.value || '');
+        var confirm = String(passwordConfirmInput.value || '');
+        checks.length.classList.toggle('pass', password.length >= 8);
+        checks.letter.classList.toggle('pass', /[A-Za-z]/.test(password));
+        checks.number.classList.toggle('pass', /\d/.test(password));
+        checks.match.classList.toggle('pass', password !== '' && password === confirm);
+    }
+
+    passwordInput.addEventListener('input', updateChecks);
+    passwordConfirmInput.addEventListener('input', updateChecks);
+    updateChecks();
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        var formData = new FormData(form);
+        var username = String(formData.get('username') || '').trim();
+        var password = String(formData.get('password') || '');
+        var passwordConfirm = String(formData.get('passwordConfirm') || '');
+
+        if (!username || !password) {
+            feedback.textContent = 'Please enter a username and password.';
+            return;
+        }
+
+        if (password !== passwordConfirm) {
+            feedback.textContent = 'Passwords do not match.';
+            return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Creating...';
+        feedback.textContent = 'Creating your account...';
+
+        try {
+            var response = await fetch('/api/auth/register.json', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username, password: password })
+            });
+
+            var payload = await response.json();
+            if (!response.ok || !payload.success || !payload.data || !payload.data.token) {
+                throw new Error((payload && payload.message) || 'Registration failed');
+            }
+
+            localStorage.setItem('support_auth', JSON.stringify(payload.data));
+            feedback.textContent = 'Account created. Redirecting to the dashboard...';
+            window.location.href = '/pages/app.html';
+        } catch (error) {
+            feedback.textContent = (error && error.message) || 'Registration failed';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Create Account';
+        }
+    });
+})();</script></body></html>

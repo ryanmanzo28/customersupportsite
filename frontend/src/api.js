@@ -1,6 +1,22 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 const AUTH_STORAGE_KEY = 'support_auth';
 
+function extractErrorMessage(payload, fallback) {
+  if (!payload || typeof payload !== 'object') {
+    return fallback;
+  }
+
+  if (payload.message) {
+    return payload.message;
+  }
+
+  if (payload.errors && typeof payload.errors === 'object') {
+    return JSON.stringify(payload.errors);
+  }
+
+  return fallback;
+}
+
 function readAuth() {
   const raw = localStorage.getItem(AUTH_STORAGE_KEY);
   if (!raw) {
@@ -36,6 +52,14 @@ export function logout() {
   localStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
+function requireAuthData(payload, fallbackMessage) {
+  if (!payload || !payload.success || !payload.data || !payload.data.token || !payload.data.user) {
+    throw new Error(payload?.message || fallbackMessage);
+  }
+
+  return payload.data;
+}
+
 export async function login(username, password) {
   const res = await fetch(`${API_BASE}/api/auth/login.json`, {
     method: 'POST',
@@ -46,12 +70,13 @@ export async function login(username, password) {
   });
 
   const payload = await res.json();
-  if (!res.ok || !payload.success) {
+  if (!res.ok) {
     throw new Error(payload.message || 'Login failed');
   }
 
-  writeAuth(payload.data);
-  return payload.data.user;
+  const authData = requireAuthData(payload, 'Login succeeded but no JWT token was returned');
+  writeAuth(authData);
+  return authData.user;
 }
 
 export async function register(username, password) {
@@ -64,12 +89,13 @@ export async function register(username, password) {
   });
 
   const payload = await res.json();
-  if (!res.ok || !payload.success) {
+  if (!res.ok) {
     throw new Error(payload.message || 'Registration failed');
   }
 
-  writeAuth(payload.data);
-  return payload.data.user;
+  const authData = requireAuthData(payload, 'Registration succeeded but no JWT token was returned');
+  writeAuth(authData);
+  return authData.user;
 }
 
 export async function fetchMe() {
@@ -107,7 +133,7 @@ export async function createTicket(input) {
 
   const payload = await res.json();
   if (!res.ok || !payload.success) {
-    throw new Error('Ticket save failed');
+    throw new Error(extractErrorMessage(payload, 'Ticket save failed'));
   }
 
   return payload.data;
@@ -117,7 +143,7 @@ export async function fetchTicketById(id) {
   const res = await fetch(`${API_BASE}/api/tickets/${id}.json`);
   const payload = await res.json();
   if (!res.ok || !payload.success) {
-    throw new Error(payload.message || 'Failed to load ticket');
+    throw new Error(extractErrorMessage(payload, 'Failed to load ticket'));
   }
   return payload.data;
 }
@@ -133,7 +159,7 @@ export async function updateTicketStatus(id, status) {
 
   const payload = await res.json();
   if (!res.ok || !payload.success) {
-    throw new Error(payload.message || 'Failed to update status');
+    throw new Error(extractErrorMessage(payload, 'Failed to update status'));
   }
 
   return payload.data;
@@ -150,7 +176,7 @@ export async function createComment(ticketId, input) {
 
   const payload = await res.json();
   if (!res.ok || !payload.success) {
-    throw new Error(payload.message || 'Failed to add comment');
+    throw new Error(extractErrorMessage(payload, 'Failed to add comment'));
   }
 
   return payload.data;

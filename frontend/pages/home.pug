@@ -1,0 +1,65 @@
+doctype html
+html
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    style
+      include ../src/assets/styles/main.css
+    title Home
+  body
+    main.page.home-page
+      nav.page-nav
+        a.page-link(href="/pages/home.html") Home
+        a.page-link(href="/pages/about.html") About
+        a.page-link(href="/pages/contact.html") Contact
+        a.page-link(href="/pages/login.html") Login
+      header.app-hero
+        div
+          p.hero-kicker Support Portal
+          h1.welcome-message Welcome to the Support Site
+          p.lead
+            | Manage support tickets, track updates, and communicate with your team in one place.
+          .cta-row
+            a#cta-create-account.signup-link.primary-cta(href="/pages/register.html") Create your account
+            a.page-link.secondary-cta(href="/pages/app.html") Open ticket app
+            a.page-link.secondary-cta(href="/pages/about.html") Learn more
+        aside.hero-card
+          p.hero-kicker System snapshot
+          .hero-stats
+            article.mini-stat
+              strong 24/7
+              span Availability
+            article.mini-stat
+              strong Fast
+              span Ticket updates
+            article.mini-stat
+              strong Simple
+              span Collaboration
+            article.mini-stat
+              strong Clean
+              span Support flow
+      section.quick-points
+        h2.quick-title Why teams use this portal
+        ul.feature-list
+          li Track open, in-progress, and resolved tickets at a glance.
+          li Keep conversations attached to each ticket for full context.
+          li Reduce response time with a focused support workflow.
+          li Move from registration to ticketing without switching tools.
+    script.
+      (function () {
+        var cta = document.getElementById('cta-create-account');
+        if (!cta) return;
+
+        var raw = localStorage.getItem('support_auth');
+        if (!raw) return;
+
+        try {
+          var auth = JSON.parse(raw);
+          if (auth && auth.token) {
+            cta.style.display = 'none';
+          }
+        } catch (e) {
+          /* Ignore invalid localStorage payloads. */
+          
+        }
+      })();

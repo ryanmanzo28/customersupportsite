@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Cake\Controller\Controller;
+use Cake\View\JsonView;
 
 class AppController extends Controller
 {
     public function initialize(): void
     {
         parent::initialize();
-        $this->loadComponent('RequestHandler');
+
+        if (strcasecmp((string)$this->request->getParam('prefix'), 'Api') === 0) {
+            $this->viewBuilder()->setClassName(JsonView::class);
+            $this->viewBuilder()->setOption('serialize', true);
+        }
     }
 
     protected function issueAuthToken(int $id, string $username): string

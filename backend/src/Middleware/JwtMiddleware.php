@@ -9,19 +9,19 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class AuthMiddleware implements MiddlewareInterface
+class JwtMiddleware implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $user = $this->extractUser($request);
-        if ($user) {
-            $request = $request->withAttribute('authUser', $user);
+        $payload = $this->extractPayload($request);
+        if ($payload !== null) {
+            $request = $request->withAttribute('jwtPayload', $payload);
         }
 
         return $handler->handle($request);
     }
 
-    private function extractUser(ServerRequestInterface $request): ?array
+    private function extractPayload(ServerRequestInterface $request): ?array
     {
         $header = $request->getHeaderLine('Authorization');
         if (!str_starts_with($header, 'Bearer ')) {
@@ -30,31 +30,25 @@ class AuthMiddleware implements MiddlewareInterface
 
         $token = trim(substr($header, 7));
         [$payload, $signature] = array_pad(explode('.', $token, 2), 2, null);
-
         if (!$payload || !$signature) {
             return null;
         }
 
-        $expected = hash_hmac('sha256', $payload, $this->authSecret());
+        $expected = hash_hmac('sha256', $payload, $this->secretKey());
         if (!hash_equals($expected, $signature)) {
             return null;
         }
 
         $decoded = json_decode(base64_decode($payload), true);
-        if (!is_array($decoded) || empty($decoded['id']) || empty($decoded['username'])) {
+        if (!is_array($decoded)) {
             return null;
         }
 
-        return [
-            'id' => (int)$decoded['id'],
-            'username' => (string)$decoded['username'],
-        ];
+        return $decoded;
     }
 
-    private function authSecret(): string
+    private function secretKey(): string
     {
-        return (string)env('APP_KEY', 'dev-secret-change-me');
+        return (string)env('JWT_KEY', 'dev-secret-change-me');
     }
-    
-
 }

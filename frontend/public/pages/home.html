@@ -1,4 +1,4 @@
-:root {
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>:root {
     color-scheme: light;
     --bg-1: #f7f4ef;
     --bg-2: #eef4ff;
@@ -651,3 +651,20 @@ hr {
     }
 }
 
+</style><title>Home</title></head><body><main class="page home-page"><nav class="page-nav"><a class="page-link" href="/pages/home.html">Home</a><a class="page-link" href="/pages/about.html">About</a><a class="page-link" href="/pages/contact.html">Contact</a><a class="page-link" href="/pages/login.html">Login</a></nav><header class="app-hero"><div><p class="hero-kicker">Support Portal</p><h1 class="welcome-message">Welcome to the Support Site</h1><p class="lead">Manage support tickets, track updates, and communicate with your team in one place.</p><div class="cta-row"><a class="signup-link primary-cta" id="cta-create-account" href="/pages/register.html">Create your account</a><a class="page-link secondary-cta" href="/pages/app.html">Open ticket app</a><a class="page-link secondary-cta" href="/pages/about.html">Learn more</a></div></div><aside class="hero-card"><p class="hero-kicker">System snapshot</p><div class="hero-stats"><article class="mini-stat"><strong>24/7</strong><span>Availability</span></article><article class="mini-stat"><strong>Fast</strong><span>Ticket updates</span></article><article class="mini-stat"><strong>Simple</strong><span>Collaboration</span></article><article class="mini-stat"><strong>Clean</strong><span>Support flow</span></article></div></aside></header><section class="quick-points"><h2 class="quick-title">Why teams use this portal</h2><ul class="feature-list"><li>Track open, in-progress, and resolved tickets at a glance.</li><li>Keep conversations attached to each ticket for full context.</li><li>Reduce response time with a focused support workflow.</li><li>Move from registration to ticketing without switching tools.</li></ul></section></main><script>(function () {
+  var cta = document.getElementById('cta-create-account');
+  if (!cta) return;
+
+  var raw = localStorage.getItem('support_auth');
+  if (!raw) return;
+
+  try {
+    var auth = JSON.parse(raw);
+    if (auth && auth.token) {
+      cta.style.display = 'none';
+    }
+  } catch (e) {
+    /* Ignore invalid localStorage payloads. */
+    
+  }
+})();</script></body></html>

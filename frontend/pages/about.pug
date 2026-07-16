@@ -1,0 +1,30 @@
+doctype html
+html
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        style
+            include ../src/assets/styles/main.css
+        title About
+    body
+        main.page
+            nav.page-nav
+                a.page-link(href="/pages/home.html") Home
+                a.page-link(href="/pages/about.html") About
+                a.page-link(href="/pages/contact.html") Contact
+                a.page-link(href="/pages/login.html") Login
+            header.register-hero
+                div
+                    p.register-kicker About The Platform
+                    h1 About This Site
+                    p.lead
+                        | This support portal helps teams create, organize, and resolve customer tickets quickly.
+                    .cta-row
+                        a.signup-link.primary-cta(href="/pages/app.html") Open ticket app
+                        a.page-link.secondary-cta(href="/pages/register.html") Create account
+                aside
+                    h2.quick-title What it’s built with
+                    ul.register-feature-list
+                        li Backend is powered by CakePHP.
+                        li Frontend uses Vue + Vite for the dashboard.
+                        li Static pages are compiled from Pug templates.

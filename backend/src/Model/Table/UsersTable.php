@@ -18,29 +18,26 @@ class UsersTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
-        $this->hasMany('Tickets', [
-            'foreignKey' => 'submitting_user_id',
-        ]);
     }
 
     public function validationDefault(Validator $validator): Validator
-    {
-        $validator
-            ->integer('id')
-            ->allowEmptyString('id', null, 'create');
+{
+    $validator
+        ->integer('id')
+        ->allowEmptyString('id', null, 'create');
 
-        $validator
-            ->scalar('username')
-            ->maxLength('username', 255)
-            ->requirePresence('username', 'create')
-            ->notEmptyString('username');
+    $validator
+        ->scalar('username')
+        ->maxLength('username', 255)
+        ->requirePresence('username', 'create')
+        ->notEmptyString('username');
 
-        $validator
-            ->scalar('password')
-            ->maxLength('password', 255)
-            ->requirePresence('password', 'create')
-            ->notEmptyString('password');
+    $validator
+        ->scalar('password')
+        ->maxLength('password', 255)
+        ->requirePresence('password', 'create')
+        ->notEmptyString('password');
 
-        return $validator;
-    }
+    return $validator;
+}
 }

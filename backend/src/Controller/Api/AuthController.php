@@ -10,7 +10,7 @@ class AuthController extends AppController
 {
     public function login()
     {
-        $username = (string)($this->request->getData('username') ?? '');
+        $username = trim((string)($this->request->getData('username') ?? ''));
         $password = (string)($this->request->getData('password') ?? '');
 
         if ($username === '' || $password === '') {
@@ -76,7 +76,7 @@ class AuthController extends AppController
 
     public function register()
     {
-        $username = (string)($this->request->getData('username') ?? '');
+        $username = trim((string)($this->request->getData('username') ?? ''));
         $password = (string)($this->request->getData('password') ?? '');
 
         if ($username === '' || $password === '') {
@@ -84,6 +84,16 @@ class AuthController extends AppController
             $this->set([
                 'success' => false,
                 'message' => 'Username and password are required',
+                '_serialize' => ['success', 'message'],
+            ]);
+            return;
+        }
+
+        if (strlen($password) < 8) {
+            $this->response = $this->response->withStatus(422);
+            $this->set([
+                'success' => false,
+                'message' => 'Password must be at least 8 characters',
                 '_serialize' => ['success', 'message'],
             ]);
             return;

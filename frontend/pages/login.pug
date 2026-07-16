@@ -1,0 +1,109 @@
+doctype html
+html
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        style
+            include ../src/assets/styles/main.css
+        title Login
+    body
+        main.page
+            nav.page-nav
+                a.page-link(href="/pages/home.html") Home
+                a.page-link(href="/pages/about.html") About
+                a.page-link(href="/pages/contact.html") Contact
+                a.page-link(href="/pages/register.html") Register
+            header.register-hero
+                div
+                    p.register-kicker Account Access
+                    h1 Sign In
+                    p.lead
+                        | Log in to create tickets, post comments, and track support progress.
+                aside
+                    h2.quick-title Need an account?
+                    .cta-row
+                        a.signup-link.primary-cta(href="/pages/register.html") Create account
+                        a.page-link.secondary-cta(href="/pages/home.html") Back to home
+
+            section.panel.auth-panel
+                .auth-header
+                    h2 Login Form
+                    span.auth-badge Secure Access
+                p#login-feedback.meta Enter your username and password.
+                form#login-form
+                    .row.auth-grid
+                        label(for="username")
+                            | Username
+                            input#username(type="text", name="username", autocomplete="username", placeholder="demo", required)
+                        label(for="password")
+                            | Password
+                            input#password(type="password", name="password", autocomplete="current-password", placeholder="demo", required)
+                    .auth-actions
+                        button#login-submit(type="submit") Login
+                    a.auth-switch(href="/pages/app.html") Use ticket app login instead
+
+        script.
+            (function () {
+                try {
+                    var existingAuthRaw = localStorage.getItem('support_auth');
+                    if (existingAuthRaw) {
+                        var existingAuth = JSON.parse(existingAuthRaw);
+                        if (existingAuth && existingAuth.token) {
+                            window.location.replace('/pages/app.html');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    /* Ignore invalid localStorage payloads. */
+                }
+
+                var form = document.getElementById('login-form');
+                var submitButton = document.getElementById('login-submit');
+                var feedback = document.getElementById('login-feedback');
+
+                if (!form || !submitButton || !feedback) {
+                    return;
+                }
+
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+
+                    var formData = new FormData(form);
+                    var username = String(formData.get('username') || '').trim();
+                    var password = String(formData.get('password') || '');
+
+                    if (!username || !password) {
+                        feedback.textContent = 'Please enter both username and password.';
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Signing in...';
+                    feedback.textContent = 'Signing in...';
+
+                    try {
+                        var response = await fetch('/api/auth/login.json', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ username: username, password: password })
+                        });
+
+                        var payload = await response.json();
+                        if (!response.ok || !payload.success || !payload.data || !payload.data.token) {
+                            throw new Error((payload && payload.message) || 'Login failed');
+                        }
+
+                        localStorage.setItem('support_auth', JSON.stringify(payload.data));
+                        feedback.textContent = 'Login successful. Redirecting...';
+                        window.location.href = '/pages/app.html';
+                    } catch (error) {
+                        feedback.textContent = (error && error.message) || 'Login failed';
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Login';
+                    }
+                });
+            })();
+

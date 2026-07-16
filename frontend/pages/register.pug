@@ -1,0 +1,147 @@
+doctype html
+html
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        style
+            include ../src/assets/styles/main.css
+        title Register
+    body
+        main.page
+            nav.page-nav
+                a.page-link(href="/pages/home.html") Home
+                a.page-link(href="/pages/about.html") About
+                a.page-link(href="/pages/contact.html") Contact
+                a.page-link(href="/pages/login.html") Login
+            header.register-hero
+                div
+                    p.register-kicker Account Setup
+                    h1 Create Your Support Account
+                    p.lead
+                        | Register in a few seconds, then manage tickets and replies in one place.
+                    .cta-row
+                        a.signup-link.primary-cta(href="/pages/login.html") Already have an account?
+                        a.page-link.secondary-cta(href="/pages/home.html") Back to home
+                aside
+                    h2.quick-title What you get
+                    ul.register-feature-list
+                        li Track ticket progress from open to closed.
+                        li Post comments directly on active tickets.
+                        li Keep your support history tied to your username.
+
+            section.panel.auth-panel
+                .auth-header
+                    h2 Register Form
+                    span.auth-badge Account Creation
+                p#register-feedback.meta Enter a username and create a secure password.
+                form#register-form
+                    .row.auth-grid
+                        label(for="username")
+                            | Username
+                            input#username(type="text", name="username", autocomplete="username", placeholder="Pick a username", required)
+                        label(for="password")
+                            | Password
+                            input#password(type="password", name="password", autocomplete="new-password", placeholder="Create a password", required)
+                        label(for="passwordConfirm")
+                            | Confirm Password
+                            input#passwordConfirm(type="password", name="passwordConfirm", autocomplete="new-password", placeholder="Re-enter password", required)
+                    ul.password-checks
+                        li#check-length At least 8 characters
+                        li#check-letter Includes a letter
+                        li#check-number Includes a number
+                        li#check-match Passwords match
+                    .auth-actions
+                        button#register-submit(type="submit") Create Account
+                    a.auth-switch(href="/pages/login.html") Use existing login instead
+
+        script.
+            (function () {
+                try {
+                    var existingAuthRaw = localStorage.getItem('support_auth');
+                    if (existingAuthRaw) {
+                        var existingAuth = JSON.parse(existingAuthRaw);
+                        if (existingAuth && existingAuth.token) {
+                            window.location.replace('/pages/app.html');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    /* Ignore invalid localStorage payloads. */
+                }
+
+                var form = document.getElementById('register-form');
+                var submitButton = document.getElementById('register-submit');
+                var feedback = document.getElementById('register-feedback');
+                var passwordInput = document.getElementById('password');
+                var passwordConfirmInput = document.getElementById('passwordConfirm');
+                var checks = {
+                    length: document.getElementById('check-length'),
+                    letter: document.getElementById('check-letter'),
+                    number: document.getElementById('check-number'),
+                    match: document.getElementById('check-match')
+                };
+
+                if (!form || !submitButton || !feedback || !passwordInput || !passwordConfirmInput) {
+                    return;
+                }
+
+                function updateChecks() {
+                    var password = String(passwordInput.value || '');
+                    var confirm = String(passwordConfirmInput.value || '');
+                    checks.length.classList.toggle('pass', password.length >= 8);
+                    checks.letter.classList.toggle('pass', /[A-Za-z]/.test(password));
+                    checks.number.classList.toggle('pass', /\d/.test(password));
+                    checks.match.classList.toggle('pass', password !== '' && password === confirm);
+                }
+
+                passwordInput.addEventListener('input', updateChecks);
+                passwordConfirmInput.addEventListener('input', updateChecks);
+                updateChecks();
+
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+
+                    var formData = new FormData(form);
+                    var username = String(formData.get('username') || '').trim();
+                    var password = String(formData.get('password') || '');
+                    var passwordConfirm = String(formData.get('passwordConfirm') || '');
+
+                    if (!username || !password) {
+                        feedback.textContent = 'Please enter a username and password.';
+                        return;
+                    }
+
+                    if (password !== passwordConfirm) {
+                        feedback.textContent = 'Passwords do not match.';
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Creating...';
+                    feedback.textContent = 'Creating your account...';
+
+                    try {
+                        var response = await fetch('/api/auth/register.json', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ username: username, password: password })
+                        });
+
+                        var payload = await response.json();
+                        if (!response.ok || !payload.success || !payload.data || !payload.data.token) {
+                            throw new Error((payload && payload.message) || 'Registration failed');
+                        }
+
+                        localStorage.setItem('support_auth', JSON.stringify(payload.data));
+                        feedback.textContent = 'Account created. Redirecting to the dashboard...';
+                        window.location.href = '/pages/app.html';
+                    } catch (error) {
+                        feedback.textContent = (error && error.message) || 'Registration failed';
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Create Account';
+                    }
+                });
+            })();

@@ -12,6 +12,7 @@ use Cake\Error\Middleware\ErrorHandlerMiddleware;
 use Cake\Http\BaseApplication;
 use Cake\Http\Middleware\BodyParserMiddleware;
 use Cake\Http\MiddlewareQueue;
+use Cake\Routing\RouteBuilder;
 use Cake\Routing\Middleware\RoutingMiddleware;
 
 class Application extends BaseApplication
@@ -20,17 +21,33 @@ class Application extends BaseApplication
     {
         parent::bootstrap();
 
-        require $this->getConfigDir() . '/routes.php';
+        if (class_exists(\Authentication\Plugin::class)) {
+            $this->addPlugin('Authentication');
+        }
+
+        if (class_exists(\Authorization\Plugin::class)) {
+            $this->addPlugin('Authorization');
+        }
+
     }
 
+    public function routes(RouteBuilder $routes): void
+    {
+        $loader = require dirname(__DIR__) . '/config/routes.php';
+        if ($loader instanceof \Closure) {
+            $loader($routes);
+        }
+    }
     public function middleware(MiddlewareQueue $middlewareQueue): MiddlewareQueue
     {
         $middlewareQueue
             ->add(new CorsMiddleware())
-            ->add(new ErrorHandlerMiddleware(Configure::read('Error')))
+            ->add(new ErrorHandlerMiddleware([
+                'debug' => (bool)Configure::read('debug', false),
+            ]))
+            ->add(new RoutingMiddleware($this))
             ->add(new BodyParserMiddleware())
-            ->add(new AuthMiddleware())
-            ->add(new RoutingMiddleware($this));
+            ->add(new AuthMiddleware());
 
         return $middlewareQueue;
     }
