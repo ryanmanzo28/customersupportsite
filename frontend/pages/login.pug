@@ -40,7 +40,7 @@ html
                             input#password(type="password", name="password", autocomplete="current-password", placeholder="demo", required)
                     .auth-actions
                         button#login-submit(type="submit") Login
-                    a.auth-switch(href="/pages/app.html") Use ticket app login instead
+                    a.auth-switch(href="/app.html") Use ticket app login instead
 
         script.
             (function () {
@@ -70,7 +70,7 @@ html
                     var raw = localStorage.getItem('support_auth');
                     var auth = raw ? JSON.parse(raw) : null;
                     if (auth && auth.token) {
-                        window.location.replace('/pages/app.html');
+                        window.location.replace('/app.html');
                         return;
                     }
                 } catch (e) {
@@ -116,7 +116,7 @@ html
 
                         localStorage.setItem('support_auth', JSON.stringify(payload.data));
                         feedback.textContent = 'Login successful. Redirecting...';
-                        window.location.href = '/pages/app.html';
+                        window.location.href = '/app.html';
                     } catch (error) {
                         if (error && error.name === 'AbortError') {
                             feedback.textContent = 'Login timed out. Please try again.';

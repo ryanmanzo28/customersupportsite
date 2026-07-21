@@ -46,18 +46,6 @@ if (-not $SkipPugCompile) {
     }
 }
 
-$appEntry = Join-Path $root 'frontend/app.html'
-if (Test-Path $appEntry) {
-    Copy-Item -Path $appEntry -Destination (Join-Path $servedOutDir 'app.html') -Force
-
-    $appHtml = Join-Path $servedOutDir 'app.html'
-    if (Test-Path $appHtml) {
-        $content = Get-Content -Path $appHtml -Raw
-        $content = $content -replace '<title>[^<]*</title>', '<title>Support Dashboard</title>'
-        Set-Content -Path $appHtml -Value $content -Encoding utf8
-    }
-}
-
 Push-Location (Join-Path $root 'frontend')
 try {
     if (Test-Path 'package-lock.json') {

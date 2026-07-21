@@ -21,7 +21,6 @@ const statusSaving = ref(false);
 const commentSaving = ref(false);
 const error = ref('');
 const authUser = ref(getAuthUser());
-const redirectingToLogin = ref(false);
 const lastUpdatedAt = ref(null);
 const backendStats = ref(null);
 
@@ -91,12 +90,17 @@ async function loadTickets() {
   loading.value = true;
   error.value = '';
   try {
-    tickets.value = await fetchTickets({
-      q: ticketQuery.value.trim(),
-      status: ticketStatusFilter.value === 'all' ? '' : ticketStatusFilter.value,
-      limit: 50,
-    });
-    backendStats.value = await fetchStats();
+    const [ticketResults, stats] = await Promise.all([
+      fetchTickets({
+        q: ticketQuery.value.trim(),
+        status: ticketStatusFilter.value === 'all' ? '' : ticketStatusFilter.value,
+        limit: 50,
+      }),
+      fetchStats(),
+    ]);
+
+    tickets.value = ticketResults;
+    backendStats.value = stats;
 
     if (selectedTicket.value?.id) {
       const refreshedTicket = tickets.value.find((ticket) => ticket.id === selectedTicket.value.id);
@@ -210,8 +214,6 @@ async function submitComment() {
 
 async function restoreAuth() {
   if (!authUser.value) {
-    redirectingToLogin.value = true;
-    window.location.href = '/pages/login.html';
     return;
   }
 
@@ -221,8 +223,6 @@ async function restoreAuth() {
   } catch {
     logout();
     authUser.value = null;
-    redirectingToLogin.value = true;
-    window.location.href = '/pages/login.html';
   }
 }
 
@@ -262,12 +262,24 @@ onMounted(async () => {
 
 <template>
   <main class="page app-page">
+    <nav class="dashboard-nav" aria-label="Dashboard navigation">
+      <a class="page-brand" href="/pages/home.html">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        Support Desk
+      </a>
+      <div class="dashboard-nav-actions">
+        <span v-if="authUser" class="user-chip">{{ authUser.username }}</span>
+        <button class="icon-button" type="button" title="Refresh tickets" aria-label="Refresh tickets" :disabled="loading" @click="refreshTickets">
+          ↻
+        </button>
+      </div>
+    </nav>
     <header class="app-hero">
       <div>
-        <p class="hero-kicker">Support Desk</p>
-        <h1 class="welcome-message">Ticket dashboard</h1>
+        <p class="hero-kicker">Your support workspace</p>
+        <h1 class="welcome-message">How can we help today?</h1>
         <p class="lead">
-          Open, filter, update, and discuss support issues from a single dashboard.
+          Keep every request, update, and conversation in one calm place.
         </p>
         <div class="cta-row">
           <a class="page-link secondary-cta" href="/pages/home.html">Home</a>
@@ -279,7 +291,7 @@ onMounted(async () => {
         </div>
       </div>
       <aside class="hero-card">
-        <p class="hero-kicker">Ticket snapshot</p>
+        <p class="hero-kicker">At a glance</p>
         <div class="hero-stats">
           <article class="mini-stat">
             <strong>{{ backendTicketTotal }}</strong>
@@ -304,12 +316,12 @@ onMounted(async () => {
 
     <section class="panel auth-panel">
       <div class="auth-header">
-        <h2>Signed in</h2>
-        <span class="auth-badge">Dashboard only</span>
+        <h2>{{ authUser ? 'You’re signed in' : 'Welcome back' }}</h2>
+        <span class="auth-badge">{{ authUser ? 'Dashboard access' : 'Account access' }}</span>
       </div>
       <p v-if="authUser" class="meta">Logged in as {{ authUser.username }} (ID {{ authUser.id }})</p>
-      <p v-if="redirectingToLogin" class="meta">Session expired, redirecting to login...</p>
-      <div class="auth-signed-in">
+      <p v-else class="meta">Sign in to see your support requests, or create an account to get started.</p>
+      <div v-if="authUser" class="auth-signed-in">
         <p class="meta">Manage tickets and comments from this page. Authentication is handled on the login page.</p>
         <div class="cta-row">
           <button type="button" :disabled="loading" @click="refreshTickets">
@@ -318,9 +330,13 @@ onMounted(async () => {
           <button class="secondary-action" type="button" @click="signOut">Logout</button>
         </div>
       </div>
+      <div v-else class="cta-row">
+        <a class="signup-link primary-cta" href="/pages/login.html">Sign in</a>
+        <a class="page-link secondary-cta" href="/pages/register.html">Create account</a>
+      </div>
     </section>
 
-    <div class="dashboard-grid">
+    <div v-if="authUser" class="dashboard-grid">
       <section class="panel">
         <div class="section-heading">
           <div>
@@ -385,7 +401,7 @@ onMounted(async () => {
         <p v-if="loading" class="meta">Loading tickets...</p>
         <p v-if="error" class="auth-error">{{ error }}</p>
         <div v-if="filteredTickets.length" class="list">
-          <article v-for="ticket in filteredTickets" :key="ticket.id" class="ticket">
+          <article v-for="ticket in filteredTickets" :key="ticket.id" class="ticket" :class="{ 'is-selected': selectedTicket?.id === ticket.id }">
             <div class="ticket-head">
               <h3>{{ ticket.title }}</h3>
               <span class="status-pill" :class="ticket.status">{{ ticket.status.replace('_', ' ') }}</span>
@@ -393,7 +409,9 @@ onMounted(async () => {
             <p>{{ ticket.body }}</p>
             <p class="meta">#{{ ticket.id }} | User {{ ticket.submitting_user_id }}</p>
             <div class="ticket-actions">
-              <button type="button" @click="selectTicket(ticket.id)">View Ticket</button>
+              <button class="view-ticket-button" type="button" @click="selectTicket(ticket.id)">
+                {{ selectedTicket?.id === ticket.id ? 'Viewing ticket' : 'View ticket' }}
+              </button>
             </div>
           </article>
         </div>

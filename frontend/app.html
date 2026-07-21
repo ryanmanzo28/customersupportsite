@@ -4,9 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Support Dashboard</title>
+    <style>
+      body { margin: 0; background: #f7f8fa; color: #20242b; font: 16px/1.6 "Segoe UI", sans-serif; }
+      .app-fallback { width: min(640px, calc(100% - 32px)); margin: 64px auto; padding: 32px; background: #fff; border: 1px solid #d9dee7; border-radius: 8px; }
+      .app-fallback a { color: #2b5a9a; font-weight: 700; }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <main class="app-fallback">
+        <h1>Loading Support Dashboard…</h1>
+        <p>Please wait while the dashboard starts.</p>
+        <p>If this message stays on screen, <a href="/pages/login.html">sign in</a> or refresh the page.</p>
+      </main>
+    </div>
+    <noscript>
+      <main class="app-fallback">
+        <h1>JavaScript is required</h1>
+        <p>Please enable JavaScript to use the Support Dashboard.</p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

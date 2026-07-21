@@ -90,7 +90,7 @@ html
                     var raw = localStorage.getItem('support_auth');
                     var auth = raw ? JSON.parse(raw) : null;
                     if (auth && auth.token) {
-                        window.location.replace('/pages/app.html');
+                        window.location.replace('/app.html');
                         return;
                     }
                 } catch (e) {
@@ -155,7 +155,7 @@ html
 
                         localStorage.setItem('support_auth', JSON.stringify(payload.data));
                         feedback.textContent = 'Account created. Redirecting to the dashboard...';
-                        window.location.href = '/pages/app.html';
+                        window.location.href = '/app.html';
                     } catch (error) {
                         if (error && error.name === 'AbortError') {
                             feedback.textContent = 'Registration timed out. Please try again.';
