@@ -330,10 +330,10 @@ onMounted(async () => {
       <aside class="hero-card">
         <p class="hero-kicker">At a glance</p>
         <div class="hero-stats">
-          <article class="mini-stat">
+          <button class="mini-stat stat-filter" type="button" :class="{ 'is-active': ticketStatusFilter === 'all' }" @click="clearFilters">
             <strong>{{ backendTicketTotal }}</strong>
             <span>Total</span>
-          </article>
+          </button>
           <button class="mini-stat stat-filter" type="button" :class="{ 'is-active': ticketStatusFilter === 'open' }" @click="filterByStatus('open')">
             <strong>{{ backendOpenCount }}</strong>
             <span>Open</span>

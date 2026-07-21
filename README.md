@@ -24,7 +24,7 @@ docker compose up -d --build
 
 ## 3) Open
 
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:5173 (production build served locally)
 - Dashboard: http://localhost:5173/app.html
 - Backend: http://localhost:8080
 - Health: http://localhost:8080/api/health.json
