@@ -910,6 +910,23 @@ button, .primary-cta { background: linear-gradient(135deg, var(--accent), var(--
     color: #526057;
 }
 
+.comment-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.comment-heading strong {
+    color: var(--text);
+}
+
+.comment-heading .meta {
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

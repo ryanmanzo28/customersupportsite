@@ -51,7 +51,7 @@ class InitialSchema extends AbstractMigration
 
         $this->execute(
             'INSERT INTO users (username, password, created, modified)
-            SELECT "demo", "$2y$10$u8FE/qvZ9/q.dY5HJvK9YuEDhEQHI0t1VxT4/JkN2lJ8qV1Gxu3VW", NOW(), NOW()
+            SELECT "demo", "$2y$12$C5sY7Xztg0hefhzEHL.RFuoeYDNZspm4Z3NpwnOWcY5w2JiyjoU7K", NOW(), NOW()
             WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = "demo")'
         );
     }

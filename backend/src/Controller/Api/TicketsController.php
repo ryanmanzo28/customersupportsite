@@ -48,10 +48,15 @@ class TicketsController extends AppController
 
     public function add()
     {
+        $authUser = $this->authenticatedUser();
+        if (!$authUser) {
+            $this->respondUnauthorized();
+            return;
+        }
+
         $ticketsTable = $this->fetchTable('Tickets');
         $ticket = $ticketsTable->newEmptyEntity();
 
-        $authUser = $this->authenticatedUser();
         $payload = (array)$this->request->getData();
         $payload['status'] = $payload['status'] ?? 'open';
         if ($authUser) {
@@ -107,6 +112,12 @@ class TicketsController extends AppController
 
     public function addComment(int $id)
     {
+        $authUser = $this->authenticatedUser();
+        if (!$authUser) {
+            $this->respondUnauthorized();
+            return;
+        }
+
         try {
             $ticket = $this->fetchTable('Tickets')->get($id);
         } catch (RecordNotFoundException) {
@@ -122,11 +133,10 @@ class TicketsController extends AppController
         $commentsTable = $this->fetchTable('Comments');
         $comment = $commentsTable->newEmptyEntity();
 
-        $authUser = $this->authenticatedUser();
         $payload = [
             'ticket_id' => $ticket->id,
-            'user_id' => $authUser['id'] ?? ($this->request->getData('user_id') ?: null),
-            'commenter_name' => $authUser['username'] ?? (string)($this->request->getData('commenter_name') ?? ''),
+            'user_id' => $authUser['id'],
+            'commenter_name' => $authUser['username'],
             'comment_body' => (string)($this->request->getData('comment_body') ?? ''),
         ];
 
@@ -151,6 +161,12 @@ class TicketsController extends AppController
 
     public function updateStatus(int $id)
     {
+        $authUser = $this->authenticatedUser();
+        if (!$authUser) {
+            $this->respondUnauthorized();
+            return;
+        }
+
         $ticketsTable = $this->fetchTable('Tickets');
 
         try {
@@ -191,6 +207,16 @@ class TicketsController extends AppController
             'success' => true,
             'data' => $ticket,
             '_serialize' => ['success', 'data'],
+        ]);
+    }
+
+    private function respondUnauthorized(): void
+    {
+        $this->response = $this->response->withStatus(401);
+        $this->set([
+            'success' => false,
+            'message' => 'Please sign in to continue',
+            '_serialize' => ['success', 'message'],
         ]);
     }
 }
