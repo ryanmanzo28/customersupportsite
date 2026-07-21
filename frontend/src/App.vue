@@ -349,6 +349,7 @@ onMounted(async () => {
           <div>
             <p class="hero-kicker">Need a hand?</p>
             <h2>Start a conversation</h2>
+            <p class="section-description">A few clear details help the team give you a useful answer sooner.</p>
           </div>
           <button class="secondary-action" type="button" @click="resetTicketDraft">Reset</button>
         </div>
@@ -386,6 +387,7 @@ onMounted(async () => {
           <div>
             <p class="hero-kicker">Ticket feed</p>
             <h2>Recent conversations</h2>
+            <p class="section-description">The latest questions and updates from your support space.</p>
           </div>
           <button class="secondary-action" type="button" :disabled="loading" @click="refreshTickets">
             {{ loading ? 'Refreshing...' : 'Refresh' }}
@@ -414,7 +416,7 @@ onMounted(async () => {
               <span class="status-pill" :class="ticket.status">{{ ticket.status.replace('_', ' ') }}</span>
             </div>
             <p>{{ ticket.body }}</p>
-            <p class="meta">#{{ ticket.id }} | User {{ ticket.submitting_user_id }}</p>
+            <p class="meta">Conversation #{{ ticket.id }} · Started by member {{ ticket.submitting_user_id }}</p>
             <div class="ticket-actions">
               <button class="view-ticket-button" type="button" @click="selectTicket(ticket.id)">
                 {{ selectedTicket?.id === ticket.id ? 'Viewing ticket' : 'View ticket' }}
