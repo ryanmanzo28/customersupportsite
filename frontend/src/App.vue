@@ -281,6 +281,13 @@ onMounted(async () => {
         <p class="lead">
           Keep every request, update, and conversation in one calm place.
         </p>
+        <div class="team-note">
+          <span class="team-avatar" aria-hidden="true">SD</span>
+          <p>
+            <strong>{{ authUser ? `Good to see you, ${authUser.username}.` : 'A friendly place to get help.' }}</strong>
+            We’ll keep the conversation clear from first message to resolution.
+          </p>
+        </div>
         <div class="cta-row">
           <a class="page-link secondary-cta" href="/pages/home.html">Home</a>
           <a class="page-link secondary-cta" href="/pages/about.html">About</a>
@@ -310,7 +317,7 @@ onMounted(async () => {
             <span>Closed</span>
           </article>
         </div>
-        <p class="meta">{{ backendHealthLabel }} | Comments: {{ backendCommentCount }} | Last refreshed: {{ lastUpdatedLabel }}</p>
+        <p class="meta snapshot-note">{{ backendHealthLabel }} · {{ backendCommentCount }} replies shared · Updated {{ lastUpdatedLabel }}</p>
       </aside>
     </header>
 
@@ -322,7 +329,7 @@ onMounted(async () => {
       <p v-if="authUser" class="meta">Logged in as {{ authUser.username }} (ID {{ authUser.id }})</p>
       <p v-else class="meta">Sign in to see your support requests, or create an account to get started.</p>
       <div v-if="authUser" class="auth-signed-in">
-        <p class="meta">Manage tickets and comments from this page. Authentication is handled on the login page.</p>
+        <p class="meta">Everything you need is here. Pick up where you left off or start a new conversation with the team.</p>
         <div class="cta-row">
           <button type="button" :disabled="loading" @click="refreshTickets">
             {{ loading ? 'Refreshing...' : 'Refresh tickets' }}
@@ -340,8 +347,8 @@ onMounted(async () => {
       <section class="panel">
         <div class="section-heading">
           <div>
-            <p class="hero-kicker">Create ticket</p>
-            <h2>Open a support issue</h2>
+            <p class="hero-kicker">Need a hand?</p>
+            <h2>Start a conversation</h2>
           </div>
           <button class="secondary-action" type="button" @click="resetTicketDraft">Reset</button>
         </div>
@@ -378,7 +385,7 @@ onMounted(async () => {
         <div class="section-heading">
           <div>
             <p class="hero-kicker">Ticket feed</p>
-            <h2>Recent tickets</h2>
+            <h2>Recent conversations</h2>
           </div>
           <button class="secondary-action" type="button" :disabled="loading" @click="refreshTickets">
             {{ loading ? 'Refreshing...' : 'Refresh' }}
