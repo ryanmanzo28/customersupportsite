@@ -273,6 +273,13 @@ async function clearFilters() {
   await refreshTickets();
 }
 
+async function filterByStatus(status) {
+  ticketQuery.value = '';
+  ticketStatusFilter.value = status;
+  selectedTicket.value = null;
+  await loadTickets();
+}
+
 onMounted(async () => {
   await restoreAuth();
   if (!authUser.value) {
@@ -327,18 +334,18 @@ onMounted(async () => {
             <strong>{{ backendTicketTotal }}</strong>
             <span>Total</span>
           </article>
-          <article class="mini-stat">
+          <button class="mini-stat stat-filter" type="button" :class="{ 'is-active': ticketStatusFilter === 'open' }" @click="filterByStatus('open')">
             <strong>{{ backendOpenCount }}</strong>
             <span>Open</span>
-          </article>
-          <article class="mini-stat">
+          </button>
+          <button class="mini-stat stat-filter" type="button" :class="{ 'is-active': ticketStatusFilter === 'in_progress' }" @click="filterByStatus('in_progress')">
             <strong>{{ backendActiveCount }}</strong>
             <span>Active</span>
-          </article>
-          <article class="mini-stat">
+          </button>
+          <button class="mini-stat stat-filter" type="button" :class="{ 'is-active': ticketStatusFilter === 'closed' }" @click="filterByStatus('closed')">
             <strong>{{ backendClosedCount }}</strong>
             <span>Closed</span>
-          </article>
+          </button>
         </div>
         <p class="meta snapshot-note">{{ backendHealthLabel }} · {{ backendCommentCount }} replies shared · Updated {{ lastUpdatedLabel }}</p>
       </aside>
