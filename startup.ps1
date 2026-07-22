@@ -7,9 +7,6 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $root
 
-Write-Host '==> Building and starting Docker services (backend/frontend/db)...' -ForegroundColor Cyan
-docker compose up -d --build
-
 $pagesDir = Join-Path $root 'frontend/pages'
 $servedOutDir = Join-Path $root 'frontend/public/pages'
 $vueTempOutDir = Join-Path $root 'frontend/.startup-build'
@@ -82,6 +79,9 @@ try {
 finally {
     Pop-Location
 }
+
+Write-Host '==> Building and starting Docker services (backend/frontend/db)...' -ForegroundColor Cyan
+docker compose up -d --build
 
 Write-Host '==> Service status:' -ForegroundColor Cyan
 docker compose ps
